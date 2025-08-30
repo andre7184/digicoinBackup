@@ -283,8 +283,6 @@ def desafiosCampanhaAtivas(request):
 
     return render(request, 'UserHtml/desafiosCampanhaAtivas.html', {'campanha': campanhas, 'campanhas': campanhas})
 
-
-
 def listaDePedidos(request):
     status_pedido = request.GET.get('status')
 
