@@ -1,3 +1,6 @@
+import csv
+from io import TextIOWrapper
+import re
 from openpyxl import load_workbook
 from rest_framework import viewsets, status
 from api.models import *
@@ -38,7 +41,7 @@ class User(APIView):
         ra = request.data.get('ra')
         fistName = request.data.get('first_name')
         isAdm = request.data.get('is_adm')
-        isActive = request.data.get('is_active')
+        
 
         if not nome or not senha:
             return Response({"error": "Todos os campos são obrigatórios!", "status": status.HTTP_400_BAD_REQUEST}, status= status.HTTP_400_BAD_REQUEST)
@@ -46,35 +49,35 @@ class User(APIView):
         usuario = CustomUser.objects.create(
             username = nome,
             password = make_password(senha),
+            is_active = True,
             first_name = fistName,
             is_adm = isAdm,
-            is_active = isActive,
             ra = ra
         )
 
-        # # Enviar email após cadastro #
-        # load_dotenv()
+        # Enviar email após cadastro #
+        load_dotenv()
 
-        # yag = yagmail.SMTP(
-        #     user=os.getenv("EMAIL_USER"),
-        #     password=os.getenv("EMAIL_PASSWORD"),
-        #     host=os.getenv("EMAIL_HOST"),
-        #     port=int(os.getenv("EMAIL_PORT", "587")),
-        #     smtp_starttls=True,       
-        #     smtp_ssl=False    
-        # )
+        yag = yagmail.SMTP(
+            user=os.getenv("EMAIL_USER"),
+            password=os.getenv("EMAIL_PASSWORD"),
+            host=os.getenv("EMAIL_HOST"),
+            port=int(os.getenv("EMAIL_PORT")),
+            smtp_starttls=True,       
+            smtp_ssl=False    
+        )
 
-        # yag.send(
-        #     to=usuario.username,
-        #     subject='Bem vindo ao Sistema Digicoin',
-        #     contents=(
-        #         f'Nome: {fistName}\n'
-        #         f'RA: {ra}\n'
-        #         f'Login: {nome}\n'
-        #         f'Senha: {senha}\n'
-        #         f"Altere sua senha depois do primeiro acesso."
-        #     )
-        # )
+        yag.send(
+            to=usuario.username,
+            subject='Bem vindo ao Sistema Digicoin',
+            contents=(
+                f'Nome: {fistName}\n'
+                f'RA: {ra}\n'
+                f'Login: {nome}\n'
+                f'Senha: {senha}\n'
+                f"Altere sua senha depois do primeiro acesso."
+            )
+        )
 
         return Response({"message":"Usuário criado com sucesso!", "id":usuario.id, "status": status.HTTP_201_CREATED})
 
@@ -150,7 +153,7 @@ class Login(APIView):
                 'is_adm': user.is_adm
             }, status=status.HTTP_200_OK)
         
-        return Response({'error': 'Credenciais inválidas',}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Credenciais inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
         
 class Logout(APIView):
     def post(self, request):
@@ -255,7 +258,7 @@ class HistoricoSaldoPorIdView(APIView):
         usuario = get_object_or_404(CustomUser, pk=id)
         serializer = UsuarioComHistoricoSerializer(usuario)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 class AtualizarSaldos(APIView):
     def put(self, request):
         data = request.data
@@ -292,15 +295,23 @@ class ValidarImportacaoUsuarios(APIView):
             return Response({'erro': 'Nenhum arquivo enviado.', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
         usuarios_validados = []
+        erros = []
         emails_existentes = set(CustomUser.objects.values_list('username', flat=True))
+
+        def email_valido(email):
+            return re.match(r"[^@]+@[^@]+\.[^@]+", email)
 
         try:
             if arquivo.name.endswith('.csv'):
-                import csv
-                from io import TextIOWrapper
                 decoded_file = TextIOWrapper(arquivo.file, encoding='utf-8')
-                reader = csv.DictReader(decoded_file)
+                sample = decoded_file.read(1024)
+                decoded_file.seek(0)
+
+                # Detecta delimitador automaticamente
+                delimiter = ';' if ';' in sample else ','
+                reader = csv.DictReader(decoded_file, delimiter=delimiter)
                 rows = list(reader)
+
             elif arquivo.name.endswith(('.xls', '.xlsx')):
                 wb = load_workbook(filename=arquivo, data_only=True)
                 sheet = wb.active
@@ -311,28 +322,42 @@ class ValidarImportacaoUsuarios(APIView):
                 ]
             else:
                 return Response({'erro': 'Formato de arquivo inválido. Use CSV ou XLSX.', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             return Response({'erro': f'Erro ao ler o arquivo: {str(e)}', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
-        for row in rows:
-            email = row.get('email')
-            if row.get('nome') and email and row.get('senha'):
-                if email in emails_existentes:
-                    continue
-                usuarios_validados.append({
-                    'first_name': row.get('nome'),
-                    'username': email,
-                    'senha': row.get('senha'),
-                    'ra': row.get('ra', ''),
-                    'saldo': int(row.get('saldo') or 0),
-                    'pontuacao': int(row.get('pontuacao') or 0),
-                    'is_adm': str(row.get('is_adm')).lower() == 'true',
-                    'is_active': str(row.get('is_active')).lower() != 'false',
-                })
+        for idx, row in enumerate(rows, start=2):  # começa na linha 2 (após cabeçalho)
+            nome = str(row.get('nome', '')).strip()
+            email = str(row.get('email', '')).strip().lower()
+            senha = str(row.get('senha', '')).strip()
+
+            if not nome or not email or not senha:
+                erros.append({'linha': idx, 'erro': 'Campos obrigatórios ausentes', 'dados': row})
+                continue
+
+            if not email_valido(email):
+                erros.append({'linha': idx, 'erro': 'Email inválido', 'dados': row})
+                continue
+
+            if email in emails_existentes:
+                erros.append({'linha': idx, 'erro': 'Email já cadastrado', 'dados': row})
+                continue
+
+            usuarios_validados.append({
+                'first_name': nome,
+                'username': email,
+                'senha': senha,
+                'ra': str(row.get('ra', '')).strip(),
+                'saldo': int(row.get('saldo') or 0),
+                'pontuacao': int(row.get('pontuacao') or 0),
+                'is_adm': str(row.get('is_adm')).strip().lower() == 'true',
+                'is_active': str(row.get('is_active')).strip().lower() != 'false',
+            })
+
         if not usuarios_validados:
-            return Response({'erro': 'Nenhum usuário válido encontrado ou ja cadastrado.', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({'usuarios': usuarios_validados, 'status': status.HTTP_200_OK}, status=status.HTTP_200_OK)
+            return Response({'erro': 'Nenhum usuário válido encontrado.', 'erros': erros, 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'usuarios': usuarios_validados, 'erros': erros, 'status': status.HTTP_200_OK}, status=status.HTTP_200_OK)
 
 class InportadosUsuarios(APIView):
     def post(self, request):
@@ -360,3 +385,7 @@ class InportadosUsuarios(APIView):
                 continue
 
         return Response({'message': f'{cadastrados} usuários cadastrados com sucesso!', 'status': status.HTTP_200_OK}, status=status.HTTP_200_OK)
+
+class DesenvolvedoresViewSet(viewsets.ModelViewSet):
+    queryset = Desenvolvedores.objects.all()
+    serializer_class = DesenvolvedoresSerializer

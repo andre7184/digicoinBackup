@@ -1,3 +1,4 @@
+from urllib.parse import urlencode
 from django.shortcuts import render, redirect
 from api.models import *
 from django.core.paginator import Paginator
@@ -10,8 +11,6 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.db.models import Q
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from urllib.parse import urlencode
-
 
 def login(request):
     return render(request, 'index.html')
@@ -266,6 +265,7 @@ def listaDeUsuarios(request):
 
     return render(request, 'AdmHtml/listaDeUsuarios.html', context)
 
+
 def desafiosCampanha(request, campanha_id):
 
     desafio = Desafio.objects.filter(idCampanha=campanha_id)
@@ -282,6 +282,8 @@ def desafiosCampanhaAtivas(request):
     campanhas = campanha_paginator.get_page(campanha_page)
 
     return render(request, 'UserHtml/desafiosCampanhaAtivas.html', {'campanha': campanhas, 'campanhas': campanhas})
+
+
 
 def listaDePedidos(request):
     status_pedido = request.GET.get('status')
@@ -545,3 +547,7 @@ def exportar_usuarios_com_mais_moedas_excel(request):
     
     return response
 
+def desenvolvedores(request):
+    devs = Desenvolvedores.objects.filter(professor=False)
+    professores = Desenvolvedores.objects.filter(professor=True)
+    return render(request, 'desenvolvedores.html', {'devs': devs, 'professores': professores})

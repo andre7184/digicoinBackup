@@ -14,19 +14,21 @@
     --cinzaPlaceHolder:#9E9E9E;
     --cinzaDatas: #D9D9D9;
   }
+.mainCentroListaUsuarios {
+    display: flex;
+    justify-content: center;
+}
 
 .mainListaUsuarios {
-    padding: 10px;
-    font-family: Arial, sans-serif;
     width: 60%;
     margin-left: 450px;
-    
+    margin-top: 30px;
 }
 
 .divPesquisa-listaDeUsuarios {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .barraPesquisa-listaDeUsuarios {
@@ -57,7 +59,7 @@
 .barraPesquisa-listaDeUsuarios input {
     border: none;
     outline: none;
-    width: 120px;
+    width: 200px;
     font-size: 14px;
 }
 
@@ -87,7 +89,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
 }
 
 .primeiraLinha-listaDeUsuarios h1 span {
@@ -140,8 +141,16 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    font-weight: bold;
     margin-bottom: 15px;
-    font-size: 22px;
+    font-size: 20px;
+    margin-left: 25px;
+    margin-top: 10px;
+}
+
+.head-listaDeUsuarios img {
+    width: 25px;
+    height: 25px;
 }
 
 .selecionar-todos-listaDeUsuarios {
@@ -226,8 +235,8 @@
 }
 
 .infoUser-listaDeUsuarios img{
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
 }
 
 .infoUser-listaDeUsuarios .nome-listaDeUsuarios {
@@ -922,33 +931,6 @@ dialog {
         text-align: center;
     }
 }
-
-/* .pagination{
-    margin-bottom: 40px;
-    display: flex;
-}
-.pagination a {
-    font-size: 24px;
-    text-decoration: none;
-    
-}
-
-.pagination div{
-    margin-top: 20px;
-    display: flex;
-}
-
-.pagination img{
-    transform: rotate(180deg);
-    width: 32px;
-    height: 32px;
-}
-
-.pagination span{
-    margin-top: 23px;
-    margin-left: 10px;
-    margin-right: 10px;
-} */
 
 .pagination-listaDeUsuarios {
     display: flex;

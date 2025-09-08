@@ -4,100 +4,102 @@
 
 <link rel="stylesheet" href="{% static 'css/AdmCss/listaDeUsuarios.css'%}">
 {% include "components/adm/menuAdm.html" %}
-<div class="mainListaUsuarios">
-    <input type="hidden" id="quantidadeTotalUsuarios" value="{{ quantidade_total }}">
-    <div class="divPesquisa-listaDeUsuarios">
-        <div class="barraPesquisa-listaDeUsuarios" data-url="{% url 'listaDeUsuarios' %}">
-            {% if gerencia_admin %}
-                <label for="filtroAdmin">
-                    <input type="checkbox" id="filtroAdmin" {% if tipo_user_admin == 'true' %}checked{% endif %}>
-                    Admin
-                </label>
-            {% endif %}
-            <img src="{% static 'img/iconeLupa.png' %}" alt="Ícone de busca">
-            <input id="campoBusca" name="nome" type="search" placeholder="Pesquisar nome">
-            <button onclick="buscarUsuario()">Buscar</button>
+<main class="mainCentroListaUsuarios">
+    <div class="mainListaUsuarios">
+        <input type="hidden" id="quantidadeTotalUsuarios" value="{{ quantidade_total }}">
+        <input type="hidden" id="quantidadeUsuariosAtivos" value="{{ quantidade_ativos }}">
+        <div class="divPesquisa-listaDeUsuarios">
+            <div class="barraPesquisa-listaDeUsuarios" data-url="{% url 'listaDeUsuarios' %}">
+                {% if gerencia_admin %}
+                    <label for="filtroAdmin">
+                        <input type="checkbox" id="filtroAdmin" {% if tipo_user_admin == 'true' %}checked{% endif %}>
+                        Admin
+                    </label>
+                {% endif %}
+                <img src="{% static 'img/iconeLupa.png' %}" alt="Ícone de busca">
+                <input id="campoBusca" name="nome" type="search" placeholder="Pesquisar nome">
+            </div>
         </div>
-    </div>
-    <div class="primeiraLinha-listaDeUsuarios">
-        <h1><span>Usu</span>ários</h1>
-        <div class="botoesUsuario-listaDeUsuarios">
-            {% if tipo_user_admin != 'true' %}
-                <button class="addMoedas-listaDeUsuarios" id="addMoedas">
+        <div class="primeiraLinha-listaDeUsuarios">
+            <h1><span>Usu</span>ários</h1>
+            <div class="botoesUsuario-listaDeUsuarios">
+                {% if tipo_user_admin != 'true' %}
+                    <button class="addMoedas-listaDeUsuarios" id="addMoedas">
+                        <img src="{% static 'img/iconAdicionar.png' %}" alt="">
+                        Gerir digicoins
+                    </button>
+                {% endif %}
+                <button class="addUsuarios-listaDeUsuarios" data-tipo-usuario="{{ tipo_user_admin }}" id="addUsuarios">
                     <img src="{% static 'img/iconAdicionar.png' %}" alt="">
-                    Gerir digicoins
+                    Adicionar usuário {% if tipo_user_admin == 'true' %}Admin{% endif %}
                 </button>
-            {% endif %}
-            <button class="addUsuarios-listaDeUsuarios" data-tipo-usuario="{{ tipo_user_admin }}" id="addUsuarios">
-                <img src="{% static 'img/iconAdicionar.png' %}" alt="">
-                Adicionar usuário {% if tipo_user_admin == 'true' %}Admin{% endif %}
-            </button>
-            {% if gerencia_admin %}
-                <button class="addUsuariosFile-listaDeUsuarios" id="abrirImportarUsuarios">
-                    <img src="{% static 'img/usuario-add-file.png' %}" alt="">
-                    Importar usuários
-                </button>
-            {% endif %}
+                {% if gerencia_admin %}
+                    <button class="addUsuariosFile-listaDeUsuarios" id="abrirImportarUsuarios">
+                        <img src="{% static 'img/usuario-add-file.png' %}" alt="">
+                        Importar usuários
+                    </button>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    <div class="head-listaDeUsuarios">
-        <p>Nome</p>
-        <img src="{% static 'img/lista.png' %}" alt="">
-    </div>
-    {% if tipo_user_admin != 'true' %}
-        <div class="selecionar-todos-listaDeUsuarios">
-            <label>
-                <input type="checkbox" id="selecionarTodos"> 
-                Selecionar todos os <span id="quantidadeSelecionados">{{quantidade_ativos}}</span> usuários ativos
-            </label>
+        <div class="head-listaDeUsuarios">
+            <p>Nome</p>
+            <img src="{% static 'img/lista.png' %}" alt="">
         </div>
-    {% endif %}
-    <div id="listaUsuarios"  class="listaUsuarios">
-        {% for usuario in usuarios %}
-            {% if usuario.is_active %}
-                <div class="linhaUsuario-listaDeUsuarios">
-                    {% if tipo_user_admin != 'true' %}
-                        <input type="checkbox" class="checkbox">
-                    {% endif %}
-                    <div class="infoUser-listaDeUsuarios">
-                        <input type="hidden" class="idUser-listaDeUsuarios" value="{{usuario.id}}">
-                        <img src="{% static 'img/userBlack.png' %}" alt="">
-                        <span class="nome-listaDeUsuarios">{{usuario.first_name}}</span>
-                        <span class="saldo-listaDeUsuarios">{% if not usuario.is_adm %} D$ {{usuario.saldo}} {% endif %}</span>
-                        <span class="status-listaDeUsuarios"></span>
+        {% if tipo_user_admin != 'true' %}
+            <div class="selecionar-todos-listaDeUsuarios">
+                <label>
+                    <input type="checkbox" id="selecionarTodos"> 
+                    Selecionar todos os <span id="quantidadeSelecionados">{{quantidade_ativos}}</span> usuários ativos
+                </label>
+            </div>
+        {% endif %}
+        <div id="listaUsuarios"  class="listaUsuarios">
+            {% for usuario in usuarios %}
+                {% if usuario.is_active %}
+                    <div class="linhaUsuario-listaDeUsuarios">
+                        {% if tipo_user_admin != 'true' %}
+                            <input type="checkbox" class="checkbox">
+                        {% endif %}
+                        <div class="infoUser-listaDeUsuarios">
+                            <input type="hidden" class="idUser-listaDeUsuarios" value="{{usuario.id}}">
+                            <img src="{% static 'img/userBlack.png' %}" alt="">
+                            <span class="nome-listaDeUsuarios">{{usuario.first_name}}</span>
+                            <span class="saldo-listaDeUsuarios">{% if not usuario.is_adm %} D$ {{usuario.saldo}} {% endif %}</span>
+                            <span class="status-listaDeUsuarios"></span>
 
+                        </div>
+                        <img class="iconeResetSenha-listaDeUsuarios" id="abrirResetarSenha" data-id="{{usuario.id}}" data-nome="{{usuario.first_name}}" data-email="{{usuario.username}}" src="{% static 'img/reset-senha.png' %}" alt="">
+                        <img class="iconeEditar-listaDeUsuarios" id="editar" data-id="{{usuario.id}}" data-nome="{{usuario.first_name}}" data-email="{{usuario.username}}" data-ra="{{usuario.ra}}" data-status="{{usuario.is_active|lower}}" data-tipo-usuario="{{usuario.is_adm|lower}}" src="{% static 'img/edit.png' %}" alt="">
                     </div>
-                    <img class="iconeResetSenha-listaDeUsuarios" id="abrirResetarSenha" data-id="{{usuario.id}}" data-nome="{{usuario.first_name}}" data-email="{{usuario.username}}" src="{% static 'img/reset-senha.png' %}" alt="">
-                    <img class="iconeEditar-listaDeUsuarios" id="editar" data-id="{{usuario.id}}" data-nome="{{usuario.first_name}}" data-email="{{usuario.username}}" data-ra="{{usuario.ra}}" data-status="{{usuario.is_active|lower}}" data-tipo-usuario="{{usuario.is_adm|lower}}" src="{% static 'img/edit.png' %}" alt="">
-                </div>
-            {% else %}
-                <div class="linhaUsuario-listaDeUsuarios desativado-listaDeUsuarios">
-                    <input type="checkbox" class="checkbox" disabled>
-                    <div class="infoUser-listaDeUsuarios">
-                        <input type="hidden" class="idUser-listaDeUsuarios" value="{{usuario.id}}">
-                        <img src="{% static 'img/userBlack.png' %}" alt="">
-                        <span class="nome-listaDeUsuarios">{{usuario.first_name}}</span>
-                        <span class="status-listaDeUsuarios">Desativado</span>
+                {% else %}
+                    <div class="linhaUsuario-listaDeUsuarios desativado-listaDeUsuarios">
+                        <input type="checkbox" class="checkbox" disabled>
+                        <div class="infoUser-listaDeUsuarios">
+                            <input type="hidden" class="idUser-listaDeUsuarios" value="{{usuario.id}}">
+                            <img src="{% static 'img/userBlack.png' %}" alt="">
+                            <span class="nome-listaDeUsuarios">{{usuario.first_name}}</span>
+                            <span class="status-listaDeUsuarios">Desativado</span>
+                        </div>
+                        <img class="iconeEditar-listaDeUsuarios" id="editar" data-id="{{usuario.id}}" data-nome="{{usuario.first_name}}" data-email="{{usuario.username}}" data-ra="{{usuario.ra}}" data-status="{{usuario.is_active|lower}}" data-tipo-usuario="{{usuario.is_adm|lower}}"  src="{% static 'img/edit.png' %}" alt="">
                     </div>
-                    <img class="iconeEditar-listaDeUsuarios" id="editar" data-id="{{usuario.id}}" data-nome="{{usuario.first_name}}" data-email="{{usuario.username}}" data-ra="{{usuario.ra}}" data-status="{{usuario.is_active|lower}}" data-tipo-usuario="{{usuario.is_adm|lower}}"  src="{% static 'img/edit.png' %}" alt="">
+                {% endif %}
+            {% endfor%} 
+        </div>
+        <div class="pagination-listaDeUsuarios">
+            {% if usuarios.has_previous %}
+                <div>
+                    <a href="?{{ query_string }}&user_page={{ usuarios.previous_page_number }}">Anterior</a>
                 </div>
             {% endif %}
-        {% endfor%} 
+            <span>Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}</span>
+            {% if usuarios.has_next %}
+                <div>
+                    <a href="?{{ query_string }}&user_page={{ usuarios.next_page_number }}">Próxima</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
-    <div class="pagination-listaDeUsuarios">
-        {% if usuarios.has_previous %}
-            <div>
-                <a href="?{{ query_string }}&user_page={{ usuarios.previous_page_number }}">Anterior</a>
-            </div>
-        {% endif %}
-        <span>Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}</span>
-        {% if usuarios.has_next %}
-            <div>
-                <a href="?{{ query_string }}&user_page={{ usuarios.next_page_number }}">Próxima</a>
-            </div>
-        {% endif %}
-    </div>
-</div>
+</main>
 <dialog id="popupCadastrarUsuario">
     <div class="header-cadastrarUsuario">
         <div class="headerLogo-cadastrarUsuario">
@@ -227,7 +229,7 @@
             <input type="file" id="arquivoUsuarios" name="arquivo_usuarios" accept=".csv, .xlsx">
         </div>
         <div class="input-importarUsuarios">
-            <button class="botaoSubmit-importarUsuarios" type="button" id="botaoValidarImportarUsuarios">Validar Usuários</button>
+            <button class="botaoSubmit-importarUsuarios" type="button" id="botaoValidarImportarUsuarios">Validar Dados</button>
         </div>
     </form>
     <div class="localResultadoValidacao-importarUsuarios" id="localResultadoValidacao" style="display:none;">

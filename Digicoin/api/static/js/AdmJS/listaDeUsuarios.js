@@ -20,6 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const editar = document.querySelectorAll('[id="editar"]');
   const abrirResetarSenha = document.querySelectorAll('[id="abrirResetarSenha"]');
   const popupResetarSenha = document.getElementById('popupResetarSenha');
+  const campoBusca = document.getElementById('campoBusca');
+  
+  if (campoBusca) {
+      let timeout = null;
+      campoBusca.addEventListener('input', function () {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+              buscarUsuario();
+          }, 1000); // espera 500ms após o último caractere digitado
+      });
+  }
 
   botaoNovoArquivo.addEventListener('click', () => {
     fecharImportarUsuarios.click();
@@ -229,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let paraTodos = false;
       if (selecionarTodos.checked) {
           paraTodos = true;
-          totalSelecionas.textContent = 'para ' + document.getElementById('quantidadeTotalUsuarios').value + ' usuários';
+          totalSelecionas.textContent = 'para ' + document.getElementById('quantidadeUsuariosAtivos').value + ' usuários';
       }else{
         totalSelecionas.textContent = usuariosSelecionados.length;;
       }
